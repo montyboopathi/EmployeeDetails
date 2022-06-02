@@ -5,24 +5,26 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet("/jsonlogin")
 public class LoginService extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setContentType("text/html");
-		PrintWriter print = response.getWriter();
-		request.getRequestDispatcher("link.html").include(request, response);
 
-		String name = request.getParameter("name");
+		String name = request.getParameter("username");
 		String password = request.getParameter("password");
+		String departmentID=request.getParameter("departmentID");
 
-		response.setContentType("text/html");
-		PrintWriter pw = response.getWriter();
 		Connection con = null;
 		Statement stat = null;
 		ResultSet res = null;
@@ -31,12 +33,30 @@ public class LoginService extends HttpServlet {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee", "root", "123456789");
 			stat = con.createStatement();
+			if(name.equalsIgnoreCase("admin")) {   //login person is user means this block of code will execute
+				
+			}
 			res = stat.executeQuery("select * from employee_table");
+			JSONObject jObj = new JSONObject();
+
 			while (res.next()) {
-				pw.print("<br>" + res.getString("departmentID") + ", " + res.getString("employeePassword") + ","
-						+ res.getString("employeeID") + "," + res.getString("employeeName"));
+				JSONObject employee = new JSONObject();
+
+				employee.put("employeeID", res.getInt("employeeID"));
+				employee.put("employeeName", res.getString("employeeName"));
+				employee.put("employeePassword", res.getString("employeePassword"));
+				employee.put("departmentID", res.getInt("departmentID"));
 
 			}
+			res = stat.executeQuery("select * from department");
+			JSONObject jObj1 = new JSONObject();
+			while (res.next()) {
+				JSONObject department = new JSONObject();
+
+				department.put("departmentID", res.getInt("departmentID"));
+				department.put("departmentName", res.getString("departmentName"));
+			}
+			con.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
